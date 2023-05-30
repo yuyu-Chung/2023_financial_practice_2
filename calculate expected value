@@ -1,0 +1,102 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Fri May 26 12:18:08 2023
+
+@author: user
+
+財務分析練習，承上一作品，將篩選出來的股票，假設真的有買，買了以後一個月、半年、一年的期望值預估。
+撰寫邏輯：將上一選股程式篩出來的股票，搜尋5年內的股價歷史紀錄，與今日股價 +- 1塊錢內，的歷史紀錄全部篩選出來，然後依歷史紀錄抓出一個月以後、半年以後、一年以後的股價，再加總平均，設定為期望值。
+驗證方式：對照matplotlib打印出的股價圖，標出標的價格及1個月、半年、1年後的日期點，檢查與篩出之dataframe是否一致，有點懶得驗證應該是OK。
+
+"""
+
+import yahooquery as yq
+import pandas as pd
+
+
+# 設定pandas行列全展開。
+pd.set_option("display.max_columns", None)
+pd.set_option("display.max_rows", None)
+
+
+def expected_value(stock):
+    target = yq.Ticker("1536.TW")
+    data = target.history(period="5y").close
+
+    date_list = []
+    for date in data.index:
+        date_list.append(date)
+    
+    close_list = []
+    for price in data:
+       close_list.append(price)    
+
+
+    df = pd.DataFrame({"date":date_list, "close":close_list})
+
+    central_point = df.loc[len(df.index)-1, "close"]
+
+
+
+    uper =  (df["close"] > central_point-1)
+    low =   (df["close"] < central_point+1)
+
+    point = df[(uper & low)]
+
+    predict_list_1 = []
+    predict_list_2 = []
+    predict_list_3 = []
+    for star in point.index:
+        predict_list_1.append(star + 20)
+        predict_list_2.append(star + 120)
+        predict_list_3.append(star + 240)
+
+
+
+    month_mean = []
+    helf_year = []
+    year = []    
+    for result in predict_list_1:
+        if result < len(df.index):
+            part = df.loc[result, "close"]
+            month_mean.append(part)
+    for result in predict_list_2:
+        if result < len(df.index):
+            part = df.loc[result, "close"]
+            helf_year.append(part)
+    for result in predict_list_3:
+        if result < len(df.index):
+            part = df.loc[result, "close"]
+            year.append(part)
+
+    print( stock+" expected value:")
+
+        
+    if len(month_mean) > 0 :
+        mon_av = sum(month_mean)/len(month_mean)    
+        final_m = round(mon_av, 2)
+        print("expected value for month:", final_m)
+    if len(helf_year) > 0 :    
+        he_av = sum(helf_year)/len(helf_year)
+        final_he = round(he_av, 2)
+        print("expected_value for helf year:", final_he)
+    if len(year) > 0 :
+        ye_av = sum(year)/len(year)    
+        final_y = round(ye_av, 2)
+        print("expected value for 1 year:", final_y)
+    
+        
+        
+         
+expected_value("1536.TW")
+
+
+
+
+
+"""
+達邁     3645.TW
+和大     1536.TW
+泰福-KY  6541.TW
+日友     8341.TW
+"""
