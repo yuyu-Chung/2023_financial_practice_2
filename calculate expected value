@@ -20,7 +20,7 @@ pd.set_option("display.max_rows", None)
 
 
 def expected_value(stock):
-    target = yq.Ticker("1536.TW")
+    target = yq.Ticker(stock)
     data = target.history(period="5y").close
 
     date_list = []
